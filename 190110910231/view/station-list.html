@@ -1,0 +1,270 @@
+<!--
+ * @Author: your name
+ * @Date: 2021-12-25
+ * @LastEditTime: 2021-12-25
+ * @LastEditors: Please set LastEditors
+ * @Description: In User Settings Edit
+ * @FilePath: \BikeData\view\station-list.html
+-->
+<!DOCTYPE html>
+<html class="x-admin-sm">
+    
+    <head>
+        <meta charset="UTF-8">
+        <title>欢迎页面-X-admin2.2</title>
+        <meta name="renderer" content="webkit">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+        <meta name="viewport" content="width=device-width,user-scalable=yes, minimum-scale=0.4, initial-scale=0.8,target-densitydpi=low-dpi" />
+        <link rel="stylesheet" href="../css/font.css">
+        <link rel="stylesheet" href="../css/xadmin.css">
+        <!-- <link rel="stylesheet" href="../lib//layui/css/layui.css"  media="all"> -->
+        <script src="../lib/layui/layui.js" charset="utf-8"></script>
+        <script type="text/javascript" src="../js/xadmin.js"></script>
+        <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+        <!--[if lt IE 9]>
+          <scrip src="https://cdn.staticfile.org/html5shiv/r29/html5.min.js"></scrip>
+          <script src="https://cdn.staticfile.org/respond.js/1.4.2/respond.min.js"></script>
+        <![endif]-->
+    </head>
+    
+    <body>
+        <div class="x-nav">
+            <span class="layui-breadcrumb">
+                <a href="">首页</a>
+            </span>
+            <a class="layui-btn layui-btn-small" style="line-height:1.6em;margin-top:3px;float:right" onclick="location.reload()" title="刷新">
+                <i class="layui-icon layui-icon-refresh" style="line-height:30px"></i>
+            </a>
+        </div>
+        <div class="layui-fluid">
+            <div class="layui-row layui-col-space15">
+                <div class="layui-col-md12">
+                    <div class="layui-card">
+                        <div class="layui-card-body ">
+                            <form class="layui-form layui-col-space5">
+                                <div class="layui-inline layui-show-xs-block">
+                                    <input class="layui-input" autocomplete="off" placeholder="站点标号" name="start" id="start"></div>
+                                <div class="layui-inline layui-show-xs-block">
+                                    <input class="layui-input" autocomplete="off" placeholder="日期" name="time_start" id="time_start">
+                                </div>
+                                <div class="layui-inline layui-show-xs-block">
+                                    <input class="layui-input" autocomplete="off" placeholder="次数" name="during" id="during">
+                                </div>
+                                <div class="layui-inline layui-show-xs-block">
+                                    <button class="layui-btn" lay-submit="" data-type="reload" id="layui-btns" type="button">
+                                        <i class="layui-icon">&#xe615;</i>
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                        <div class="layui-card-body ">
+                            <table class="layui-table" lay-filter="test" id="table-person">
+                                <!-- <thead>
+                                    <tr>
+                                        <th lay-data="{type:'checkbox'}">ID</th>
+                                        <th lay-data="{field:'id', width:80, sort: true}">ID</th>
+                                        <th lay-data="{field:'username', width:120, sort: true, edit: 'text'}">用户名</th>
+                                        <th lay-data="{field:'email', edit: 'text', minWidth: 150}">邮箱</th>
+                                        <th lay-data="{field:'sex', width:80,templet: '#switchTpl'}">性别</th>
+                                        <th lay-data="{field:'city', edit: 'text', minWidth: 100}">城市</th>
+                                        <th lay-data="{field:'experience', sort: true, edit: 'text'}">积分</th>
+                                        <th lay-data="{field:'dw_xinzhi',templet: function(d){ return d.dw_xinzhi.titel;}}">学校</th></tr>
+                                </thead> -->
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </body>
+    <script type="text/html" id="toolbarDemo">
+        <div class = "layui-btn-container" > 
+            <button class = "layui-btn layui-btn-sm" lay-event = "getCheckData" > 获取选中行数据 </button>
+            <button class="layui-btn layui-btn-sm" lay-event="getCheckLength">获取选中数目</button > 
+            <button class = "layui-btn layui-btn-sm" lay-event = "isAll" > 验证是否全选</button>
+            <button class="layui-btn" onclick="xadmin.open('添加用户','./station-add.html',600,400)" lay-event = "addData"><i class="layui-icon"></i>添加</button>
+        </div > 
+    </script>
+    <script type="text/html" id="barDemo">
+        <a class="layui-btn layui-btn-xs" lay-event="edit">编辑</a>
+        <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>
+    </script>
+    <script>
+        let url = "http://localhost:3000/station"
+        axios({
+			method: 'get',
+			url: url,
+		}).then(response => {
+			const result = response.data;
+			layui.use('table',function(){
+                let layer = layui.layer
+                let table = layui.table
+                table.render({
+                    elem:'#table-person',
+                    url:url,
+                    id:'test',
+                    page:true,
+                    toolbar:'#toolbarDemo',
+                    limit: 12,
+                    parseData:function(res){
+                        let result
+                        if(this.page.curr){
+                            result = res.data.slice(this.limit*(this.page.curr-1),this.limit*this.page.curr);
+                        }
+                        else{
+                            result=res.data.slice(0,this.limit);
+                        }
+                        return {
+                            "code": 0, //解析接口状态
+                            "msg": "", //解析提示文本
+                            "count": res.data.length, //解析数据长度
+                            "data": result//解析数据列表
+                        };
+                    },
+                    cols: [[
+                        {type:'checkbox',title:""},
+                        {field: 'Cid', title: 'ID', width:100,},
+                        {field:'Cnumber',title:'站点标号'},
+                        {field: 'Cname',title:"站点名称"},
+                        {field: 'dayd',title:"日期"},
+                        {field: 'DayNum',title:"次数"} ,
+                        {fixed: 'right', title:'操作', toolbar: '#barDemo'}
+                    ]],
+                })
+                var $ = layui.$, active = {
+                    reload: function(){
+                        let Cnumber = $('#start').val()
+                        let Day = $("#time_start").val()
+                        let DayNum = $("#during").val()
+                        //进行筛选将筛选条件传入后端
+                        axios.get('/station-select', {
+                            params: {
+                                Cnumber: Cnumber,
+                                Day:Day,
+                                DayNum:DayNum
+                            }
+                        }).then(function (response) {
+                            // layer.open({
+                            //     title: 'select',
+                            //     content: '筛选成功'
+                            // }); 
+                            //执行重载
+                            table.reload('test', {
+                                url:'',
+                                data:response.data
+                            });   
+                        })
+                    }
+                };
+                $('#layui-btns').on('click', function(){   
+                    var type = $(this).data('type');
+                    active[type] ? active[type].call(this) : '';
+                });
+                // $("#layui-btns").click(()=>{
+                //     let inputVal = parseInt($('#end').val()) 
+                //     console.log(inputVal)
+                //     table.reload('test',{
+                //         where:{
+                //             key:{
+                //                 Cid:inputVal
+                //             }
+                //         }
+                //     })
+                // })
+            })
+		})
+        layui.use('table',
+            function() {
+                let layer = layui.layer
+                var table = layui.table;
+
+                //头工具栏事件
+                table.on('toolbar(test)',
+                function(obj) {
+                    var checkStatus = table.checkStatus(obj.config.id);
+                    switch (obj.event) {
+                    case 'getCheckData':
+                        var data = checkStatus.data;
+                        layer.alert(JSON.stringify(data));
+                        break;
+                    case 'getCheckLength':
+                        var data = checkStatus.data;
+                        layer.msg('选中了：' + data.length + ' 个');
+                        break;
+                    case 'isAll':
+                        layer.msg(checkStatus.isAll ? '全选': '未全选');
+                        break;
+                    
+                    };
+                });
+                //
+                table.on('tool(test)', function(obj){
+                    let data = obj.data;
+                    if(obj.event === 'del'){
+                        layer.confirm('真的删除行么', function(index){
+                        obj.del();
+                        layer.close(index);
+                        let Cid = data.Cid
+                        //将要删除的id传入数据库
+                        axios.get('/station-delete', {
+                            params: {
+                                ID: Cid
+                            }
+                        }).then(function (response) {
+                            layer.open({
+                                title: 'delete',
+                                content: '删除成功'
+                            });     
+                        })
+
+                        
+                    });
+                    }else if(obj.event === 'edit'){ 
+                        let str = ""
+                        for(let key in data){
+                            str+=key+":"+data[key]+"\n"
+                        }
+                        layer.prompt({
+                            formType: 2,
+                            value: str
+                    },function(value, index){
+                        let list = value.split("\n").slice(0,-1)
+                        //更新操作接入后端将要更改的数据传入后端
+                        axios.get('/station-change',{
+                            params:{
+                                Cid:(list[0].slice(list[0].indexOf(":")+1)),
+                                Cnumber:list[1].slice(list[1].indexOf(":")+1),
+                                Cname:list[2].slice(list[2].indexOf(":")+1),
+                                Day:list[3].slice(list[3].indexOf(":")+1),
+                                dayNum:list[4].slice(list[4].indexOf(":")+1),
+                            }
+                        }).then((response)=>{
+                            layer.open({
+                                title: 'change',
+                                content: '数据修改成功'
+                            });     
+                        })
+                        obj.update({
+                            Cid:(list[0].slice(list[0].indexOf(":")+1)),
+                            Cnumber:list[1].slice(list[1].indexOf(":")+1),
+                            Cname:list[2].slice(list[2].indexOf(":")+1),
+                            dayd:list[3].slice(list[3].indexOf(":")+1),
+                            DayNum:list[4].slice(list[4].indexOf(":")+1),
+                        });
+                        layer.close(index);
+                    });
+                    }
+                });
+            }
+        )
+    </script>
+    <!-- <script>
+        var _hmt = _hmt || []; (function() {
+            var hm = document.createElement("script");
+            hm.src = "https://hm.baidu.com/hm.js?b393d153aeb26b46e9431fabaf0f6190";
+            var s = document.getElementsByTagName("script")[0];
+            s.parentNode.insertBefore(hm, s);
+        })();
+    </script> -->
+
+</html>
