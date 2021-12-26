@@ -19,8 +19,8 @@ const ejs = require("ejs")//视图引擎
 app.use(express.static(__dirname))
 app.set("view engine", "ejs")
 app.set("views", "./views")
-const mongoose = require('mongoose');//数据库工具
 
+const mongoose = require('mongoose');//数据库工具
 
 //设置跨域访问
 app.all('*', function (req, res, next) {
@@ -32,9 +32,9 @@ app.all('*', function (req, res, next) {
     next();
 });
 router.get('/',function(req,res,next){
-    console.log(req.login);
-    res.render('/index',{
-        login:req.login
+    // console.log(req.query.isAdmin);
+    res.render('/',{
+        login:req.query.isAdmin
     })
 })
 /**
@@ -195,16 +195,36 @@ app.get("/station", (req, res, next) => {
  */
 app.get("/delete", (req, res) => {
     let Cid = parseInt(req.query.ID)
-    let _id
+    let id
     UserDataLast.forEach((item) => {
         if (parseInt(item.id) === Cid) {
             _id = item._id
         }
     })
     let condition = {
-        _id: _id
+        _id: _id,
     }
     Users.remove(condition, (err, data) => {
+        if (err) {
+            console.log("删除失败")
+        } else {
+            console.log("删除成功")
+        }
+    })
+    res.send("success")
+})
+app.get("/deletes", (req, res) => {
+    let Cid = parseInt(req.query.ID)
+    let id
+    StationList.forEach((item) => {
+        if (parseInt(item.Cid) === Cid) {
+            _id = item._id
+        }
+    })
+    let condition = {
+        _id: _id,
+    }
+    Stations.remove(condition, (err, data) => {
         if (err) {
             console.log("删除失败")
         } else {
@@ -347,10 +367,7 @@ app.get('/input', (req, res, next) => {
         let find = { 
             name: name, 
             password: password,
-            isAdmin:{
-            type: Boolean,
-            default:false,
-        } }
+            isAdmin:false }
         var loginFlag = 0
         //  insertDB.myfind('190110910231','login',find,(docs)=>{
         insertDB.myfind('mydb', 'login', find, (docs) => {

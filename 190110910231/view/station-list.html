@@ -206,13 +206,13 @@
                         layer.close(index);
                         let Cid = data.Cid
                         //将要删除的id传入数据库
-                        axios.get('/station-delete', {
+                        axios.get('/deletes', {
                             params: {
                                 ID: Cid
                             }
                         }).then(function (response) {
                             layer.open({
-                                title: 'delete',
+                                title: 'deletes',
                                 content: '删除成功'
                             });     
                         })
