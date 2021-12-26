@@ -43,12 +43,13 @@
                         <div class="layui-card-body ">
                             <form class="layui-form layui-col-space5">
                                 <div class="layui-inline layui-show-xs-block">
-                                    <input class="layui-input" autocomplete="off" placeholder="站点标号" name="start" id="start"></div>
+                                    <input class="layui-input" autocomplete="off" placeholder="站点标号" name="start" id="start">
+                                </div>
                                 <div class="layui-inline layui-show-xs-block">
                                     <input class="layui-input" autocomplete="off" placeholder="日期" name="time_start" id="time_start">
                                 </div>
                                 <div class="layui-inline layui-show-xs-block">
-                                    <input class="layui-input" autocomplete="off" placeholder="次数" name="during" id="during">
+                                    <input class="layui-input" autocomplete="off" placeholder="次数(大于此数将会显示）" name="during" id="during">
                                 </div>
                                 <div class="layui-inline layui-show-xs-block">
                                     <button class="layui-btn" lay-submit="" data-type="reload" id="layui-btns" type="button">
@@ -134,13 +135,13 @@
                 var $ = layui.$, active = {
                     reload: function(){
                         let Cnumber = $('#start').val()
-                        let Day = $("#time_start").val()
+                        let dayd = $("#time_start").val()
                         let DayNum = $("#during").val()
                         //进行筛选将筛选条件传入后端
-                        axios.get('/station-select', {
+                        axios.get('/selects', {
                             params: {
                                 Cnumber: Cnumber,
-                                Day:Day,
+                                dayd:dayd,
                                 DayNum:DayNum
                             }
                         }).then(function (response) {
@@ -230,26 +231,26 @@
                     },function(value, index){
                         let list = value.split("\n").slice(0,-1)
                         //更新操作接入后端将要更改的数据传入后端
-                        axios.get('/station-change',{
+                        axios.get('/changes',{
                             params:{
-                                Cid:(list[0].slice(list[0].indexOf(":")+1)),
-                                Cnumber:list[1].slice(list[1].indexOf(":")+1),
-                                Cname:list[2].slice(list[2].indexOf(":")+1),
-                                Day:list[3].slice(list[3].indexOf(":")+1),
-                                dayNum:list[4].slice(list[4].indexOf(":")+1),
+                                Cid:(list[1].slice(list[1].indexOf(":")+1)),
+                                Cnumber:list[2].slice(list[2].indexOf(":")+1),
+                                Cname:list[3].slice(list[3].indexOf(":")+1),
+                                Day:list[4].slice(list[4].indexOf(":")+1),
+                                dayNum:list[5].slice(list[5].indexOf(":")+1),
                             }
                         }).then((response)=>{
                             layer.open({
-                                title: 'change',
+                                title: 'changes',
                                 content: '数据修改成功'
                             });     
                         })
                         obj.update({
-                            Cid:(list[0].slice(list[0].indexOf(":")+1)),
-                            Cnumber:list[1].slice(list[1].indexOf(":")+1),
-                            Cname:list[2].slice(list[2].indexOf(":")+1),
-                            dayd:list[3].slice(list[3].indexOf(":")+1),
-                            DayNum:list[4].slice(list[4].indexOf(":")+1),
+                            Cid:(list[1].slice(list[1].indexOf(":")+1)),
+                            Cnumber:list[2].slice(list[2].indexOf(":")+1),
+                            Cname:list[3].slice(list[3].indexOf(":")+1),
+                            dayd:list[4].slice(list[4].indexOf(":")+1),
+                            DayNum:list[5].slice(list[5].indexOf(":")+1),
                         });
                         layer.close(index);
                     });

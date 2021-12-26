@@ -144,13 +144,13 @@
                 var $ = layui.$, active = {
                     reload: function(){
                         let Cid = $('#start').val()
-                        let Name = $("#Name").val()
+                        let name = $("#Name").val()
                         let during = $("#during").val()
                         //进行筛选将筛选条件传入后端
                         axios.get('/select', {
                             params: {
                                 Cid: Cid,
-                                Name:Name,
+                                name:name,
                                 during:during
                             }
                         }).then(function (response) {

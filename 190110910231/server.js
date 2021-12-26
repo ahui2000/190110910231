@@ -269,6 +269,38 @@ app.get("/change", (req, res) => {
     res.send("success")
 })
 
+app.get("/changes", (req, res) => {
+    let data = req.query
+    let Cid = parseInt(data.Cid)
+    let Number = data.Cnumber
+    let Name = data.Cname
+    let Day = parseInt(data.Day)
+    let DayNum = parseInt(data.dayNum)
+    let _id
+    StationList.forEach((item) => {
+        if (parseInt(item.Cid) === Cid) {
+            _id = item._id
+        }
+    })
+    const updataFields = {
+        _id,
+        Cid,
+        Number,
+        Name,
+        Day,
+        DayNum
+    }
+    Stations.findByIdAndUpdate({ _id, _id }, updataFields, (err, data) => {
+        if (err) {
+            console.log("更改失败")
+
+        } else {
+            console.log("更改成功")
+
+        }
+    })
+    res.send("success")
+})
 //添加数据
 let flagsu = "0"
 app.get("/add", (req, res, next) => {
@@ -304,6 +336,38 @@ app.get("/add", (rep, res) => {
     res.send(flagsu)
 })
 
+let flagsu1 = "0"
+app.get("/adds", (req, res, next) => {
+    let data = req.query
+    let Cid = parseInt(data.Cid)
+    let Cnumber = data.Cnumber
+    let Cname = data.Cname
+    let dayd = parseInt(data.Day)
+    let DayNum = parseInt(data.dayNum)
+    const newcat = new Stations({
+        Cid,
+        Cnumber,
+        Cname,
+        dayd,
+        DayNum
+    })
+    newcat.save((err, data) => {
+        if (err) {
+            flagsu1 = "0"
+            console.log(err)
+            console.log('添加失败')
+            next()
+        } else {
+            flagsu1 = "1"
+            next()
+            console.log('添加成功')
+        }
+    })
+})
+app.get("/adds", (rep, res) => {
+    res.send(flagsu1)
+})
+
 //筛选数据
 let dataSelect = []
 app.get("/select", (rep, res, next) => {
@@ -311,17 +375,19 @@ app.get("/select", (rep, res, next) => {
     let list = {}
     let querys = {}
     let Cid = data.Cid
-    let Name = data.Name
+    let name = data.name
     let during = data.during
     list['id'] = Cid
-    list['Name'] = Name
+    list['name'] = name
     list['during'] = during
     for (let key in list) {
         if (String(list[key]).length !== 0) {
             if (key === 'during') {
                 querys[key] = { "$gt": parseInt(during) }
-            } else {
-                querys[key] = parseInt(list[key])
+            } else if(key === 'name'){
+                querys[key] = parseInt(name)
+            }else{
+                querys[key] = parseInt(Cid)
             }
         }
     }
@@ -338,7 +404,42 @@ app.get("/select", (rep, res, next) => {
     res.send(dataSelect)
 })
 
-
+let dataSelects = []
+app.get("/selects", (rep, res, next) => {
+    let data = rep.query
+    let list = {}
+    let querys = {}
+    let Cnumber = data.Cnumber
+    let dayd = data.dayd
+    let DayNum = data.DayNum
+    list['Cnumber'] = Cnumber
+    list['dayd'] = dayd
+    list['DayNum'] = DayNum
+    for (let key in list) {
+        if (String(list[key]).length !== 0) {
+            if (key === 'DayNum') {
+                querys[key] = { "$gt": parseInt(DayNum) }
+            } else if (key === 'dayd'){
+                querys[key] = parseInt(dayd)
+            }
+            else{
+                querys[key] = parseInt(Cnumber)
+            }
+        }
+        }
+    
+    Stations.find(querys, (err, docs) => {
+        dataSelects = []
+        docs.forEach((item) => {
+            dataSelects.push(item._doc)
+        })
+        next()
+    })
+})
+app.get("/selects", (rep, res, next) => {
+    console.log(dataSelects)
+    res.send(dataSelects)
+})
 /**
  * 路由
  * 登录注册
