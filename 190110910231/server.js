@@ -13,6 +13,8 @@ const path = require('path')
 const express = require('express')
 const insertDB = require('./MongodbLib')
 const app = express()
+const cookies = require('cookies');
+const router = express.Router()
 const ejs = require("ejs")//视图引擎
 app.use(express.static(__dirname))
 app.set("view engine", "ejs")
@@ -29,7 +31,12 @@ app.all('*', function (req, res, next) {
     res.header("Content-Type", "application/json;charset=utf-8");
     next();
 });
-
+router.get('/',function(req,res,next){
+    console.log(req.login);
+    res.render('/index',{
+        login:req.login
+    })
+})
 /**
  * 数据库构建
  */
@@ -42,9 +49,7 @@ let mySchema = new Schema({
     },
     name: String,
     gender: String,
-    year: Number,
-    month: Number,
-    day: Number,
+
     during: Number,
     time_start: String,
     time_stop: String,
@@ -69,22 +74,18 @@ try {
     for (let i = 0; i < 100; i++) {
         let name = config[i].user_name
         let gender = config[i].gender
-        let year = config[i].year_start
-        let month = config[i].month_start
-        let day = config[i].day_start
         let during = config[i].trip_duration
         let time_start = config[i].start_time
         let time_stop = config[i].stop_time
+        let isAdmin = config[i].isAdmin
         let UserName = new Users({
             id: i,
             name: name,
             gender: gender,
-            year: year,
-            month: month,
-            day: day,
             during: during,
             time_start: time_start,
             time_stop: time_stop,
+            isAdmin: isAdmin,
         })
         // UserName.save().then(()=>{
         //     if(i===99){
@@ -123,6 +124,31 @@ try {
     console.log(`Error reading file from disk: ${err}`);
 }
 
+app.use(function(req, res, next){
+	req.cookies = new cookies(req, res);
+	//打印cookie
+	//console.log(req.cookies.get("userInfo"));
+	/*
+		因为在各个路由中都需要判断用户是否登录，所以我们将数据挂载在req上
+		解析登录用户的cookie信息
+	*/
+	req.login = {};
+	if(req.cookies.get("login")){
+		try{
+			req.login = JSON.parse(req.cookies.get("login"));
+			
+			//获取当前登录用户的用户类型，是否是管理员
+			Users.findById(req.login._id).then(function(login){
+				req.login.isAdmin = Boolean(login.isAdmin);
+				next();
+			})
+		}catch(err){
+			next();
+		}
+	}else{
+		next();
+	}
+})
 //获取数据库中得使用站点用户得数据
 let personData = {}
 let UserDataLast = []
@@ -233,16 +259,10 @@ app.get("/add", (req, res, next) => {
     let during = parseInt(data.trip_duration)
     let time_start = data.time_start
     let time_stop = data.time_stop
-    let year = 2021
-    let month = 12
-    let day = 23
     const newcat = new Users({
         id,
         name,
         gender,
-        year,
-        month,
-        day,
         during,
         time_start,
         time_stop,
@@ -271,10 +291,10 @@ app.get("/select", (rep, res, next) => {
     let list = {}
     let querys = {}
     let Cid = data.Cid
-    let startTime = data.startTime
-    let during = data.during.slice(2)
+    let Name = data.Name
+    let during = data.during
     list['id'] = Cid
-    list['hour_start'] = startTime
+    list['Name'] = Name
     list['during'] = during
     for (let key in list) {
         if (String(list[key]).length !== 0) {
@@ -324,7 +344,13 @@ app.get('/input', (req, res, next) => {
         // let data = {}
         //data[name]=password
         //insertDB.myInsert('mydb','mycollection',[{name:name,password:password}])
-        let find = { name: name, password: password }
+        let find = { 
+            name: name, 
+            password: password,
+            isAdmin:{
+            type: Boolean,
+            default:false,
+        } }
         var loginFlag = 0
         //  insertDB.myfind('190110910231','login',find,(docs)=>{
         insertDB.myfind('mydb', 'login', find, (docs) => {

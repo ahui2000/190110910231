@@ -115,11 +115,11 @@
                             gender:Sex,
                             trip_duration:tripDuring,
                             time_start:startTime,
-                            time_stop:startTime,
+                            time_stop:stopTime,
                         }
                     }).then((response)=>{
                          //发异步，把数据提交给php
-                         if(response.data==="1"){
+                         if(response.data=="1"){
                             layer.alert("增加成功", {
                                 icon: 6
                             },
@@ -129,8 +129,8 @@
                                 // 可以对父窗口进行刷新 
                                 xadmin.father_reload();
                             });
-                        }else{
-                            layer.alert("增加失败--id重复", {
+                        }else if(response.data=="0"){
+                            layer.alert("增加失败", {
                                 icon: 6
                             },
                             function() {
