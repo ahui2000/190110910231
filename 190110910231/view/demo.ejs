@@ -17,8 +17,10 @@
             // var is_remember = false;
         </script>
     </head>
+
     <body class="index">
         <!-- 顶部开始 -->
+
         <div class="container">
             <div class="logo">
                 <a>共享充电宝站点管理系统</a></div>
@@ -45,7 +47,7 @@
         <!-- 顶部结束 -->
         <!-- 中部开始 -->
         <!-- 左侧菜单开始 -->
-        {% if login %}
+        {% if logind %}
         <div class="left-nav">
             <div id="side-nav">
                 <ul id="nav">
@@ -126,14 +128,14 @@
                             <li>
                                 <a href="javascript:;">
                                     <i class="iconfont">&#xe70b;</i>
-                                    <cite>会员管理</cite>
+                                    <cite>超级管理</cite>
                                     <i class="iconfont nav_right">&#xe697;</i>
                                 </a>
                                 <ul class="sub-menu">
                                     <li>
-                                        <a onclick="xadmin.add_tab('会员信息','./view/member-del.html')">
+                                        <a onclick="xadmin.add_tab('权限管理','./view/admin-list.html')">
                                             <i class="iconfont">&#xe6a7;</i>
-                                            <cite>会员信息</cite>
+                                            <cite>权限管理</cite>
                                         </a>
                                     </li>
                                 </ul>
@@ -142,6 +144,7 @@
                     </li>
             </div>
         </div>
+        {% endif %}
         <!-- <div class="x-slide_left"></div> -->
         <!-- 左侧菜单结束 -->
         <!-- 右侧主体开始 -->

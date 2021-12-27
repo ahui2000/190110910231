@@ -1,27 +1,20 @@
 /*
- * @Author: your name
  * @Date: 2021-12-23 
  * @LastEditTime: 2021-12-23 10:00:00
  * @LastEditors: Please set LastEditors
- * @Description: In User Settings Edit
- * @FilePath: \BikeData\server.js
+ * @FilePath: \190110910231\server.js
  */
-const http = require('http')
 const fs = require("fs")
-const querystring = require("querystring")
-const path = require('path')
 const express = require('express')
 const insertDB = require('./MongodbLib')
 const app = express()
 const cookies = require('cookies');
 const router = express.Router()
-const ejs = require("ejs")//视图引擎
 app.use(express.static(__dirname))
 app.set("view engine", "ejs")
 app.set("views", "./views")
 
 const mongoose = require('mongoose');//数据库工具
-
 //设置跨域访问
 app.all('*', function (req, res, next) {
     res.header("Access-Control-Allow-Origin", "*");
@@ -31,12 +24,7 @@ app.all('*', function (req, res, next) {
     res.header("Content-Type", "application/json;charset=utf-8");
     next();
 });
-router.get('/',function(req,res,next){
-    // console.log(req.query.isAdmin);
-    res.render('/',{
-        login:req.query.isAdmin
-    })
-})
+
 /**
  * 数据库构建
  */
@@ -62,11 +50,17 @@ let Station = new Schema({
     dayd: Number,
     DayNum: Number
 })
+let loginsta = new Schema({
+    name: String,
+    password:String,
+    isAdmin:Boolean
+})
 //链接数据库
-mongoose.connect('mongodb://localhost/myMongoose');
+mongoose.connect('mongodb://localhost/myMongoose');;
 // mongoose.connect('mongodb://172.21.2.236:27017/190110910231')
 const Users = mongoose.model('users', mySchema);
-const Stations = mongoose.model('st', Station)
+const Stations = mongoose.model('sts', Station)
+const loginstas = mongoose.model('login', loginsta)
 //导入数据
 try {
     const data = fs.readFileSync('./data/DataUser.json', 'utf8');
@@ -85,7 +79,6 @@ try {
             during: during,
             time_start: time_start,
             time_stop: time_stop,
-            isAdmin: isAdmin,
         })
         // UserName.save().then(()=>{
         //     if(i===99){
@@ -123,7 +116,12 @@ try {
 } catch (err) {
     console.log(`Error reading file from disk: ${err}`);
 }
-
+router.get('/',function(req,res,next){
+    console.log(req.query.isAdmin);
+    res.render('/',{
+        logind:req.query.isAdmin
+    })
+})
 app.use(function(req, res, next){
 	req.cookies = new cookies(req, res);
 	//打印cookie
@@ -132,14 +130,14 @@ app.use(function(req, res, next){
 		因为在各个路由中都需要判断用户是否登录，所以我们将数据挂载在req上
 		解析登录用户的cookie信息
 	*/
-	req.login = {};
+	req.logind = {};
 	if(req.cookies.get("login")){
 		try{
-			req.login = JSON.parse(req.cookies.get("login"));
+			req.logind = JSON.parse(req.cookies.get("login"));
 			
 			//获取当前登录用户的用户类型，是否是管理员
-			Users.findById(req.login._id).then(function(login){
-				req.login.isAdmin = Boolean(login.isAdmin);
+			Users.findById(req.logind._id).then(function(loginData){
+				req.logind.isAdmin = Boolean(logind.isAdmin);
 				next();
 			})
 		}catch(err){
@@ -149,7 +147,28 @@ app.use(function(req, res, next){
 		next();
 	}
 })
-//获取数据库中得使用站点用户得数据
+let loginData = {}
+let loginDataLast = []
+app.get("/login-list1", (req, res, next) => {
+    loginstas.find({ __v: 0 }, (err, docs) => {
+        loginDataLast = []
+        docs.forEach((item) => {
+            loginDataLast.push(item._doc)
+        })
+        next()
+        console.log("查找完成")
+
+    })
+})
+app.get("/login-list1", (req, res, next) => {
+    loginData = {}
+    loginData['code'] = 0
+    loginData['msg'] = ""
+    loginData['count'] = loginDataLast.length
+    loginData['data'] = loginDataLast
+    res.send(loginData)
+})
+//获取数据库中得使用站点用户的数据
 let personData = {}
 let UserDataLast = []
 app.get("/member-list1", (req, res, next) => {
@@ -182,6 +201,7 @@ app.get("/station", (req, res, next) => {
         next()
     })
 })
+
 app.get("/station", (req, res, next) => {
     StationData = {}
     StationData['code'] = 0
@@ -440,6 +460,43 @@ app.get("/selects", (rep, res, next) => {
     console.log(dataSelects)
     res.send(dataSelects)
 })
+
+// //状态数据修改 
+app.get("/status", (req, res) => {
+    let data = req.query
+    let id = parseInt(data.Cid)
+    let name = data.Cname
+    let gender = data.gender
+    let during = parseInt(data.trip_duration)
+    let time_start = data.time_start
+    let time_stop = data.time_stop
+    let _id
+    UserDataLast.forEach((item) => {
+        if (parseInt(item.id) === id) {
+            _id = item._id
+        }
+    })
+    const updataFields = {
+        _id,
+        id,
+        name,
+        gender,
+        during,
+        time_start,
+        time_stop
+    }
+    Users.findByIdAndUpdate({ _id, _id }, updataFields, (err, data) => {
+        if (err) {
+            console.log("更改失败")
+
+        } else {
+            console.log("更改成功")
+
+        }
+    })
+    res.send("success")
+})
+
 /**
  * 路由
  * 登录注册
@@ -471,9 +528,9 @@ app.get('/input', (req, res, next) => {
             isAdmin:false }
         var loginFlag = 0
         //  insertDB.myfind('190110910231','login',find,(docs)=>{
-        insertDB.myfind('mydb', 'login', find, (docs) => {
+        insertDB.myfind('myMongoose', 'login', find, (docs) => {
             if (docs.length === 0) {
-                insertDB.myInsert('mydb', 'login', [find])
+                insertDB.myInsert('myMongoose', 'login', [find])
                 res.type('html')
                 res.render(__dirname + "/view/login.ejs", { name: "注册成功" })
             } else {
@@ -484,15 +541,14 @@ app.get('/input', (req, res, next) => {
         })
     } else {
         let find = { name: name, password: password }
-        insertDB.myfind('mydb', 'login', find, (docs) => {
+        insertDB.myfind('myMongoose', 'login', find, (docs) => {
             if (docs.length !== 0) {
                 console.log(docs)
                 res.type('html')
                 res.render(__dirname + "/view/demo.ejs")
             } else {
                 res.type('html')
-                res.render(__dirname + "/view/login.ejs")
-                alert("用户密码错误！")
+                res.render(__dirname + "/view/login.ejs",{ name: "用户名或密码错误" })
             }
         })
     }
