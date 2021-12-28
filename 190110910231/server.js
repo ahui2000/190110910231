@@ -54,7 +54,7 @@ let Station = new Schema({
 let loginsta = new Schema({
     name: String,
     password: String,
-    supercode: String
+    supercode: String,
 })
 //链接数据库
 mongoose.connect('mongodb://localhost/myMongoose');;
@@ -121,18 +121,18 @@ try {
 
 let loginData = {}
 let loginDataLast = []
-app.get("/login-list1", (req, res, next) => {
-    loginstas.find({ __v: 0 }, (err, docs) => {
+app.get("/admin-list1", (req, res, next) => {
+    loginstas.find({ supercode: "0" }, (err, docs) => {
         loginDataLast = []
+        console.log(docs)
         docs.forEach((item) => {
             loginDataLast.push(item._doc)
         })
         next()
         console.log("查找完成")
-
     })
 })
-app.get("/login-list1", (req, res, next) => {
+app.get("/admin-list1", (req, res, next) => {
     loginData = {}
     loginData['code'] = 0
     loginData['msg'] = ""
@@ -517,16 +517,16 @@ app.get('/input', (req, res, next) => {
     } else {
         let find = { name: name, password: password, supercode: supercode }
         insertDB.myfind('myMongoose', 'login', find, (docs) => {
-            if (docs.length !== 0&&find.supercode=="1") {
+            if (docs.length !== 0 && find.supercode == "1") {
                 // console.log(docs)
                 res.type('html')
                 res.render(__dirname + "/view/demo.ejs", { logindata: "1" })
             }
-            else if(docs.length !== 0&&find.supercode!=="1"){
+            else if (docs.length !== 0 && find.supercode !== "1") {
                 res.type('html')
                 res.render(__dirname + "/view/demo.ejs", { logindata: "0" })
-            }           
-             else {
+            }
+            else {
                 res.type('html')
                 res.render(__dirname + "/view/login.ejs", { logindata: "0" })
             }

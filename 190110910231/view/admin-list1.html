@@ -51,17 +51,6 @@
                         </div>
                         <div class="layui-card-body ">
                             <table class="layui-table" lay-filter="test" id="table-person">
-                                <!-- <thead>
-                                    <tr>
-                                        <th lay-data="{type:'checkbox'}">ID</th>
-                                        <th lay-data="{field:'id', width:80, sort: true}">ID</th>
-                                        <th lay-data="{field:'username', width:120, sort: true, edit: 'text'}">用户名</th>
-                                        <th lay-data="{field:'email', edit: 'text', minWidth: 150}">邮箱</th>
-                                        <th lay-data="{field:'sex', width:80,templet: '#switchTpl'}">性别</th>
-                                        <th lay-data="{field:'city', edit: 'text', minWidth: 100}">城市</th>
-                                        <th lay-data="{field:'experience', sort: true, edit: 'text'}">积分</th>
-                                        <th lay-data="{field:'dw_xinzhi',templet: function(d){ return d.dw_xinzhi.titel;}}">学校</th></tr>
-                                </thead> -->
                             </table>
                         </div>
                     </div>
@@ -69,42 +58,18 @@
             </div>
         </div>
     </body>
-    <script type="text/html" id="toolbarDemo">
-        <div class = "layui-btn-container" > 
-            <button class = "layui-btn layui-btn-sm" lay-event = "getCheckData" > 获取选中行数据 </button>
-            <button class="layui-btn layui-btn-sm" lay-event="getCheckLength">获取选中数目</button > 
-            <button class = "layui-btn layui-btn-sm" lay-event = "isAll" > 验证是否全选</button>
-            <button class="layui-btn" onclick="xadmin.open('添加用户','./member-add.html',800,500)" lay-event = "addData"><i class="layui-icon"></i>添加</button>
-        </div > 
-    </script>
     <script type="text/html" id="barDemo">
         <a class="layui-btn layui-btn-xs" lay-event="edit">编辑</a>
         <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>
     </script>
     <script>
-    // layui.use('laydate',
-    //     function() {
-    //         var laydate = layui.laydate;
-
-    //         //执行一个laydate实例
-    //         laydate.render({
-    //             elem: '#start' //指定元素
-    //         });
-
-    //         //执行一个laydate实例
-    //         laydate.render({
-    //             elem: '#end' //指定元素
-    //         });
-
-    //     })
-    </script>
-    <script>
-        let url = "http://localhost:3000/login-list1"
+        let url = "http://localhost:3000/admin-list1"
         axios({
 			method: 'get',
 			url: url,
 		}).then(response => {
 			const result = response.data;
+            console.log(result)
 			layui.use('table',function(){
                 let layer = layui.layer
                 let table = layui.table
@@ -113,7 +78,6 @@
                     url:url,
                     id:'test',
                     page:true,
-                    toolbar:'#toolbarDemo',
                     limit: 12,
                     parseData:function(res){
                         let result
@@ -132,10 +96,11 @@
                     },
                     cols: [[
                         {type:'checkbox',title:""},
+                        {field: 'id', title: 'ID', width:120},
                         {field: 'name', title: '账号', width:120},
                         {field: 'password', width:120,title:"密码"},
-                        {field: 'isAdmin', width:120,title:"状态"},
-                        {fixed: 'right', width:150,title:'操作', toolbar: '#barDemo'}
+                        {field: 'supercode', width:120,title:"超管码"},
+                        {fixed: 'right', title:'操作', toolbar: '#barDemo'}
                     ]],
                 })
                 var $ = layui.$, active = {
@@ -144,7 +109,7 @@
                         let name = $("#Name").val()
                         let during = $("#during").val()
                         //进行筛选将筛选条件传入后端
-                        axios.get('/select', {
+                        axios.get('/select123', {
                             params: {
                                 Cid: Cid,
                                 name:name,
@@ -176,42 +141,22 @@
                 let layer = layui.layer
                 var table = layui.table;
 
-                //头工具栏事件
-                table.on('toolbar(test)',
-                function(obj) {
-                    var checkStatus = table.checkStatus(obj.config.id);
-                    switch (obj.event) {
-                    case 'getCheckData':
-                        var data = checkStatus.data;
-                        layer.alert(JSON.stringify(data));
-                        break;
-                    case 'getCheckLength':
-                        var data = checkStatus.data;
-                        layer.msg('选中了：' + data.length + ' 个');
-                        break;
-                    case 'isAll':
-                        layer.msg(checkStatus.isAll ? '全选': '未全选');
-                        break;
-                    
-                    };
-                });
-                //
                 table.on('tool(test)', function(obj){
                     let data = obj.data;
                     if(obj.event === 'del'){
                         layer.confirm('真的删除行么', function(index){
                         obj.del();
                         layer.close(index);
-                        let id = data.id
+                        let Cid = data.name
                         //将要删除的id传入数据库
-                        axios.get('/delete', {
+                        axios.get('/delete123', {
                             params: {
-                                ID: id
+                                ID: Cid
                             }
                         }).then(
                             function (response) {
                             layer.open({
-                                title: 'delete',
+                                title: 'delete123',
                                 content: '删除成功'
                             });     
                         })
@@ -229,23 +174,22 @@
                     },function(value, index){
                         let list = value.split("\n").slice(0,-1)
                         //更新操作接入后端将要更改的数据传入后端
-                        axios.get('/change',{
+                        axios.get('/change123',{
                             params:{
                                 name:(list[1].slice(list[1].indexOf(":")+1)),
                                 password:(list[2].slice(list[2].indexOf(":")+1)),
-                                isAdmin:(list[3].slice(list[3].indexOf(":")+1)),
-
+                                supercode:(list[3].slice(list[3].indexOf(":")+1)),
                             }
                         }).then((response)=>{
                             layer.open({
-                                title: 'change',
+                                title: 'change123',
                                 content: '数据修改成功'
                             });     
                         })
                         obj.update({
                           name:(list[1].slice(list[1].indexOf(":")+1)),
                           password:(list[2].slice(list[2].indexOf(":")+1)),
-                          isAdmin:(list[3].slice(list[3].indexOf(":")+1)),
+                          supercode:(list[3].slice(list[3].indexOf(":")+1)),
                         });
                         layer.close(index);
                     });
