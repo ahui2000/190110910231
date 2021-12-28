@@ -9,7 +9,7 @@ const express = require('express')
 const insertDB = require('./MongodbLib')
 const app = express()
 const cookies = require('cookies');
-const router = express.Router()
+var router = express.Router()
 app.use(express.static(__dirname))
 app.set("view engine", "ejs")
 app.set("views", "./views")
@@ -24,6 +24,7 @@ app.all('*', function (req, res, next) {
     res.header("Content-Type", "application/json;charset=utf-8");
     next();
 });
+
 
 /**
  * 数据库构建
@@ -52,8 +53,8 @@ let Station = new Schema({
 })
 let loginsta = new Schema({
     name: String,
-    password:String,
-    isAdmin:Boolean
+    password: String,
+    supercode: String
 })
 //链接数据库
 mongoose.connect('mongodb://localhost/myMongoose');;
@@ -116,37 +117,8 @@ try {
 } catch (err) {
     console.log(`Error reading file from disk: ${err}`);
 }
-router.get('/',function(req,res,next){
-    console.log(req.query.isAdmin);
-    res.render('/',{
-        logind:req.query.isAdmin
-    })
-})
-app.use(function(req, res, next){
-	req.cookies = new cookies(req, res);
-	//打印cookie
-	//console.log(req.cookies.get("userInfo"));
-	/*
-		因为在各个路由中都需要判断用户是否登录，所以我们将数据挂载在req上
-		解析登录用户的cookie信息
-	*/
-	req.logind = {};
-	if(req.cookies.get("login")){
-		try{
-			req.logind = JSON.parse(req.cookies.get("login"));
-			
-			//获取当前登录用户的用户类型，是否是管理员
-			Users.findById(req.logind._id).then(function(loginData){
-				req.logind.isAdmin = Boolean(logind.isAdmin);
-				next();
-			})
-		}catch(err){
-			next();
-		}
-	}else{
-		next();
-	}
-})
+
+
 let loginData = {}
 let loginDataLast = []
 app.get("/login-list1", (req, res, next) => {
@@ -404,9 +376,9 @@ app.get("/select", (rep, res, next) => {
         if (String(list[key]).length !== 0) {
             if (key === 'during') {
                 querys[key] = { "$gt": parseInt(during) }
-            } else if(key === 'name'){
+            } else if (key === 'name') {
                 querys[key] = parseInt(name)
-            }else{
+            } else {
                 querys[key] = parseInt(Cid)
             }
         }
@@ -439,15 +411,15 @@ app.get("/selects", (rep, res, next) => {
         if (String(list[key]).length !== 0) {
             if (key === 'DayNum') {
                 querys[key] = { "$gt": parseInt(DayNum) }
-            } else if (key === 'dayd'){
+            } else if (key === 'dayd') {
                 querys[key] = parseInt(dayd)
             }
-            else{
+            else {
                 querys[key] = parseInt(Cnumber)
             }
         }
-        }
-    
+    }
+
     Stations.find(querys, (err, docs) => {
         dataSelects = []
         docs.forEach((item) => {
@@ -505,10 +477,12 @@ let a = ""
 let name = ""
 let password = ""
 let submit = ""
+let supercode = ""
 app.get('/input', (req, res, next) => {
     name = req.query.name
     submit = req.query.sub
     password = req.query.password
+    supercode = req.query.supercode
     if (name.length !== 0 && password.length !== 0) {
         next()
     } else {
@@ -522,17 +496,18 @@ app.get('/input', (req, res, next) => {
         // let data = {}
         //data[name]=password
         //insertDB.myInsert('mydb','mycollection',[{name:name,password:password}])
-        let find = { 
-            name: name, 
+        let find = {
+            name: name,
             password: password,
-            isAdmin:false }
+            supercode: supercode
+        }
         var loginFlag = 0
         //  insertDB.myfind('190110910231','login',find,(docs)=>{
         insertDB.myfind('myMongoose', 'login', find, (docs) => {
             if (docs.length === 0) {
                 insertDB.myInsert('myMongoose', 'login', [find])
                 res.type('html')
-                res.render(__dirname + "/view/login.ejs", { name: "注册成功" })
+                res.render(__dirname + "/view/index.ejs", { name: "注册成功" })
             } else {
                 loginFlag = 1
                 res.type('html')
@@ -540,15 +515,20 @@ app.get('/input', (req, res, next) => {
             }
         })
     } else {
-        let find = { name: name, password: password }
+        let find = { name: name, password: password, supercode: supercode }
         insertDB.myfind('myMongoose', 'login', find, (docs) => {
-            if (docs.length !== 0) {
-                console.log(docs)
+            if (docs.length !== 0&&find.supercode=="1") {
+                // console.log(docs)
                 res.type('html')
-                res.render(__dirname + "/view/demo.ejs")
-            } else {
+                res.render(__dirname + "/view/demo.ejs", { logindata: "1" })
+            }
+            else if(docs.length !== 0&&find.supercode!=="1"){
                 res.type('html')
-                res.render(__dirname + "/view/login.ejs",{ name: "用户名或密码错误" })
+                res.render(__dirname + "/view/demo.ejs", { logindata: "0" })
+            }           
+             else {
+                res.type('html')
+                res.render(__dirname + "/view/login.ejs", { logindata: "0" })
             }
         })
     }
