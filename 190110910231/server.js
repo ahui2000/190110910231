@@ -57,7 +57,7 @@ let loginsta = new Schema({
     supercode: String,
 })
 //链接数据库
-mongoose.connect('mongodb://localhost/myMongoose');;
+mongoose.connect('mongodb://localhost/myMongoose');
 // mongoose.connect('mongodb://172.21.2.236:27017/190110910231')
 const Users = mongoose.model('users', mySchema);
 const Stations = mongoose.model('sts', Station)
@@ -507,7 +507,7 @@ app.get('/input', (req, res, next) => {
             if (docs.length === 0) {
                 insertDB.myInsert('myMongoose', 'login', [find])
                 res.type('html')
-                res.render(__dirname + "/view/index.ejs", { name: "注册成功" })
+                res.render(__dirname + "/view/login.ejs", { name: "注册成功" })
             } else {
                 loginFlag = 1
                 res.type('html')

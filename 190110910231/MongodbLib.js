@@ -3,6 +3,7 @@ exports.myInsert = (insertDBName, insertCollectName, insertData) => {
     const assert = require('assert');
     // Connection URL
     const url = 'mongodb://localhost:27017';
+    //  const url = 'mongodb://172.21.2.236:27017';
     // Database Name
     const dbName = insertDBName;
     const client = new MongoClient(url);
@@ -28,8 +29,9 @@ exports.myInsert = (insertDBName, insertCollectName, insertData) => {
 exports.myfind = (insertDBName, insertCollectName, findData, callback) => {
     const MongoClient = require('mongodb').MongoClient;
     const assert = require('assert');
-    // Connection URL
+    // // Connection URL
     const url = 'mongodb://localhost:27017';
+    // const url = 'mongodb://172.21.2.236:27017';
     // Database Name
     const dbName = insertDBName;
     const client = new MongoClient(url);
